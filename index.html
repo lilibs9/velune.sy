@@ -7,7 +7,11 @@
 <meta name="theme-color" content="#FAF5FF"/>
 <title>VELUNE — بوتيك فيلون</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="preconnect" href="https://ucjlriaeeriucojqedur.supabase.co"/>
+<link rel="dns-prefetch" href="https://ucjlriaeeriucojqedur.supabase.co"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 :root{
@@ -214,7 +218,9 @@ h1 span{color:var(--violet);font-style:italic;font-weight:600}
 .product-card.sold-card{opacity:0.62;filter:saturate(0.4)}
 .product-card.sold-card:hover{opacity:0.78;filter:saturate(0.55)}
 .img-wrap{position:relative;width:100%;aspect-ratio:1;overflow:hidden;background:var(--blush-light);display:flex;align-items:center;justify-content:center}
-.img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .35s}
+.img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .35s,opacity .4s ease;opacity:0}
+.img-wrap img.loaded{opacity:1}
+.img-wrap img.no-fade{opacity:1}
 .product-card:hover .img-wrap img{transform:scale(1.06)}
 .img-placeholder{font-size:44px}
 .sold-badge{
@@ -242,6 +248,35 @@ h1 span{color:var(--violet);font-style:italic;font-weight:600}
 .p-status{font-size:10px;padding:4px 8px;border-radius:var(--r-sm);font-weight:600;white-space:nowrap}
 .p-status.s-avail{background:rgba(192,132,252,0.15);color:var(--violet)}
 .p-status.s-sold{background:rgba(192,80,80,0.12);color:#c05050}
+
+/* Discount / new / coming-soon badges */
+.discount-badge{
+  position:absolute;top:10px;inset-inline-end:10px;
+  background:linear-gradient(135deg,var(--blush),#ff6fc9);color:#fff;
+  padding:5px 10px;border-radius:var(--r-md);
+  font-size:10px;font-weight:700;letter-spacing:0.05em;z-index:2;
+  box-shadow:0 2px 8px rgba(255,111,201,0.4)
+}
+.sold-badge.new-badge{background:linear-gradient(135deg,var(--violet),var(--lavender))}
+.sold-badge.coming-badge{background:rgba(45,16,64,0.78);letter-spacing:0.06em}
+.price-strike{font-size:12px;color:var(--text-soft);text-decoration:line-through;margin-inline-end:6px;font-weight:400}
+.price-sale{font-size:clamp(12px,3vw,14px);color:var(--violet);font-weight:700}
+.scarcity-msg{font-size:12px;color:var(--violet);font-weight:600;background:var(--soft-lav);display:inline-block;padding:6px 13px;border-radius:var(--r-md);margin-bottom:16px}
+.scarcity-msg.hidden{display:none}
+.modal-discount-badge{display:inline-block;background:linear-gradient(135deg,var(--blush),#ff6fc9);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:var(--r-sm);margin-inline-start:8px;vertical-align:middle}
+
+/* Settings toggle switch */
+.settings-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.switch{position:relative;display:inline-block;width:46px;height:26px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch-slider{position:absolute;cursor:pointer;inset:0;background:rgba(176,130,210,0.3);border-radius:26px;transition:.2s}
+.switch-slider::before{content:'';position:absolute;height:20px;width:20px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+.switch input:checked + .switch-slider{background:var(--violet)}
+.switch input:checked + .switch-slider::before{transform:translateX(20px)}
+[dir="rtl"] .switch input:checked + .switch-slider::before{transform:translateX(-20px)}
+.form-checkbox-row{display:flex;align-items:center;gap:10px;padding:13px 0}
+.form-checkbox-row input[type="checkbox"]{width:19px;height:19px;accent-color:var(--violet);cursor:pointer;flex-shrink:0}
+.form-checkbox-row label{font-size:13px;color:var(--text-dark);cursor:pointer;font-weight:500}
 
 /* ───── MODAL ───── */
 #modal{
@@ -440,6 +475,8 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
 .badge{display:inline-block;padding:4px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:600}
 .badge-avail{background:rgba(192,132,252,0.15);color:var(--violet)}
 .badge-sold{background:rgba(192,80,80,0.12);color:#c05050}
+.badge-coming{background:rgba(141,20,171,0.12);color:var(--plum)}
+.badge-hidden{background:rgba(107,78,126,0.12);color:var(--text-mid)}
 
 /* ───── EMPTY STATE ───── */
 .empty-state{text-align:center;padding:clamp(40px,8vw,80px) 20px;color:var(--text-soft)}
@@ -689,6 +726,7 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
       <h2 class="modal-title" id="modal-title-text"></h2>
       <div id="modal-status-badge" class="modal-status-badge"></div>
       <p class="modal-price" id="modal-price-text"></p>
+      <p id="modal-scarcity-text" class="scarcity-msg hidden"></p>
       <div id="modal-meas-wrap" class="modal-meas-wrap">
         <p class="meas-title" data-en="Measurements" data-ar="المقاسات">Measurements</p>
         <div id="modal-meas-grid"></div>
@@ -755,6 +793,9 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
       </div>
       <div class="a-nav-item" onclick="showAdminPage('add',this)">
         <span data-en="Add Product" data-ar="إضافة منتج">Add Product</span>
+      </div>
+      <div class="a-nav-item" onclick="showAdminPage('settings',this)">
+        <span data-en="Settings" data-ar="الإعدادات">Settings</span>
       </div>
     </div>
     <div class="a-logout">
@@ -827,8 +868,16 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
             <input class="form-input" id="f-name" type="text" placeholder="e.g. Lavender Dress"/>
           </div>
           <div class="form-group">
-            <label class="form-label" for="f-price">Price</label>
-            <input class="form-input" id="f-price" type="text" placeholder="e.g. 45 SAR"/>
+            <div class="form-row-2">
+              <div>
+                <label class="form-label" for="f-price">Price</label>
+                <input class="form-input" id="f-price" type="text" placeholder="e.g. 45 SAR"/>
+              </div>
+              <div>
+                <label class="form-label" for="f-sale-price">Sale Price (optional)</label>
+                <input class="form-input" id="f-sale-price" type="text" placeholder="Leave blank for no discount"/>
+              </div>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label" for="f-cat">Category</label>
@@ -842,8 +891,18 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
             <label class="form-label" for="f-status">Status</label>
             <select class="form-input form-select" id="f-status">
               <option value="available">Available</option>
+              <option value="coming_soon">Coming Soon</option>
               <option value="sold">Sold</option>
+              <option value="hidden">Hidden</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-qty">Quantity (optional)</label>
+            <input class="form-input" id="f-qty" type="number" min="0" placeholder="Leave blank if unlimited · enter 1 for one-of-a-kind"/>
+          </div>
+          <div class="form-group form-checkbox-row">
+            <input type="checkbox" id="f-featured"/>
+            <label for="f-featured">Feature this product (shows first on the homepage)</label>
           </div>
 
           <div class="form-group">
@@ -871,6 +930,25 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
         </div>
       </section>
 
+      <!-- SETTINGS -->
+      <section class="admin-page" id="page-settings">
+        <div class="a-page-header">
+          <h1 class="a-page-title" data-en="Settings" data-ar="الإعدادات">Settings</h1>
+        </div>
+        <div class="a-card">
+          <div class="settings-toggle-row">
+            <div>
+              <p style="font-weight:600;color:var(--text-dark);margin-bottom:4px">Site-wide Discounts</p>
+              <p style="font-size:12px;color:var(--text-soft);max-width:420px">When off, no discount badges or sale prices show anywhere on the storefront — even on products that have a sale price set.</p>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="s-discounts-enabled" onchange="toggleDiscountsSetting(this.checked)"/>
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
     </div>
   </div>
 </div>
@@ -888,8 +966,43 @@ let uploadedImages = [];
 let currentModalImages = [];
 let currentViewerImageIndex = 0;
 let currentModalProductId = null;
+let discountsEnabled = true;
 
-const WHATSAPP_NUMBER = '+963956763579';
+const WHATSAPP_NUMBER = '0956763579';
+
+// ============ IMAGE PIPELINE (compression + thumbnails for slow connections) ============
+// Images are stored as {thumb, full}. thumb = small compressed version for grids/lists,
+// full = larger compressed version for the modal/gallery/zoom viewer.
+// Legacy products may still have plain base64 strings — every reader below falls back safely.
+function imgThumb(img) { return typeof img === 'string' ? img : (img?.thumb || img?.full || ''); }
+function imgFull(img) { return typeof img === 'string' ? img : (img?.full || img?.thumb || ''); }
+
+function compressImage(file, maxDim, quality) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxDim || height > maxDim) {
+          if (width >= height) { height = Math.round(height * maxDim / width); width = maxDim; }
+          else { width = Math.round(width * maxDim / height); height = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        let dataUrl = canvas.toDataURL('image/webp', quality);
+        if (!dataUrl.startsWith('data:image/webp')) dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
+      };
+      img.onerror = () => reject(new Error('Could not read image'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.readAsDataURL(file);
+  });
+}
 
 // ============ INIT ==============
 window.addEventListener('load', async () => {
@@ -898,12 +1011,41 @@ window.addEventListener('load', async () => {
       'https://ucjlriaeeriucojqedur.supabase.co',
       'sb_publishable_kToD-IgkG4VFtHo3-ADeag_r1t84fMh'
     );
+    await loadSettings();
     loadProducts();
   }
   // Show admin email on wider screens
   const emailEl = document.getElementById('admin-user-email');
   if (window.innerWidth > 640) emailEl.style.display = 'block';
 });
+
+// ============ SETTINGS ============
+async function loadSettings() {
+  if (!supabaseClient) return;
+  try {
+    const { data, error } = await supabaseClient.from('settings').select('*').eq('id', 1).single();
+    if (error) throw error;
+    discountsEnabled = data?.discounts_enabled !== false;
+  } catch (e) {
+    // Settings table not created yet, or no row — default to discounts enabled.
+    discountsEnabled = true;
+  }
+  const toggle = document.getElementById('s-discounts-enabled');
+  if (toggle) toggle.checked = discountsEnabled;
+}
+
+async function toggleDiscountsSetting(checked) {
+  discountsEnabled = checked;
+  renderProducts();
+  if (!supabaseClient) return;
+  try {
+    const { error } = await supabaseClient.from('settings').upsert({ id: 1, discounts_enabled: checked });
+    if (error) throw error;
+    toast(checked ? 'Discounts enabled site-wide' : 'Discounts disabled site-wide', 'success');
+  } catch (e) {
+    toast('Could not save — create a "settings" table in Supabase (see notes)', 'error');
+  }
+}
 
 // ============ PRODUCTS ============
 async function loadProducts() {
@@ -938,12 +1080,15 @@ function showSkeletonLoading() {
 }
 
 function renderProducts() {
-  const avail = products.filter(p => p.status === 'available');
+  const visible = products
+    .filter(p => p.status === 'available' || p.status === 'coming_soon')
+    .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) ||
+      new Date(b.created_at || 0) - new Date(a.created_at || 0));
   const sold = products.filter(p => p.status === 'sold');
   const grid = document.getElementById('products-grid');
   const soldGrid = document.getElementById('sold-grid');
-  grid.innerHTML = avail.length
-    ? avail.map(productCard).join('')
+  grid.innerHTML = visible.length
+    ? visible.map(productCard).join('')
     : '<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">🌸</span><p class="empty-msg">No products available yet</p></div>';
   if (sold.length) {
     document.getElementById('sold-section').classList.remove('hidden');
@@ -953,22 +1098,57 @@ function renderProducts() {
   }
 }
 
+// ---- Discount / badge helpers ----
+function computeDiscountPct(p) {
+  const orig = parseFloat(p.price);
+  const sale = parseFloat(p.sale_price);
+  if (!discountsEnabled || !orig || !sale || sale >= orig) return null;
+  return Math.round((1 - sale / orig) * 100);
+}
+
+function priceDisplay(p) {
+  const pct = computeDiscountPct(p);
+  if (pct !== null) {
+    return `<span class="price-sale">${p.sale_price}</span><span class="price-strike">${p.price}</span>`;
+  }
+  return `<span class="p-price">${p.price ?? ''}</span>`;
+}
+
+function isNewProduct(p) {
+  if (!p.created_at) return false;
+  const days = (Date.now() - new Date(p.created_at).getTime()) / 86400000;
+  return days >= 0 && days <= 7;
+}
+
 function productCard(p) {
   const sold = p.status === 'sold';
+  const comingSoon = p.status === 'coming_soon';
+  const pct = computeDiscountPct(p);
   const img = p.images?.[0]
-    ? `<img src="${p.images[0]}" alt="${p.name}" loading="lazy" decoding="async">`
+    ? `<img src="${imgThumb(p.images[0])}" alt="${p.name}" loading="lazy" decoding="async" onload="this.classList.add('loaded')">`
     : '<div class="img-placeholder">🌸</div>';
+
+  const cornerBadges = [];
+  if (sold) cornerBadges.push('<span class="sold-badge">SOLD</span>');
+  else if (comingSoon) cornerBadges.push('<span class="sold-badge coming-badge">COMING SOON</span>');
+  else if (isNewProduct(p)) cornerBadges.push('<span class="sold-badge new-badge">NEW</span>');
+  if (pct !== null && !sold) cornerBadges.push(`<span class="discount-badge">-${pct}%</span>`);
+
+  let statusLabel = 'Available', statusClass = 's-avail';
+  if (sold) { statusLabel = 'Sold'; statusClass = 's-sold'; }
+  else if (comingSoon) { statusLabel = 'Coming Soon'; statusClass = 's-sold'; }
+
   return `<div class="product-card${sold ? ' sold-card' : ''}" onclick="openModal('${p.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openModal('${p.id}')">
     <div class="img-wrap">
       ${img}
-      ${sold ? '<span class="sold-badge">SOLD</span>' : ''}
+      ${cornerBadges.join('')}
     </div>
     <div class="p-info">
       <p class="p-id">${p.product_id || p.id}</p>
       <p class="p-name">${p.name}</p>
       <div class="p-footer">
-        <span class="p-price">${p.price}</span>
-        <span class="p-status ${sold ? 's-sold' : 's-avail'}">${sold ? 'Sold' : 'Available'}</span>
+        ${priceDisplay(p)}
+        <span class="p-status ${statusClass}">${statusLabel}</span>
       </div>
     </div>
   </div>`;
@@ -982,23 +1162,46 @@ function openModal(id) {
 
   document.getElementById('modal-id-text').textContent = currentModalProductId;
   document.getElementById('modal-title-text').innerHTML = p.name;
-  document.getElementById('modal-price-text').textContent = p.price;
+
+  const pct = computeDiscountPct(p);
+  const priceEl = document.getElementById('modal-price-text');
+  priceEl.innerHTML = pct !== null
+    ? `<span class="price-sale">${p.sale_price}</span><span class="price-strike">${p.price}</span><span class="modal-discount-badge">-${pct}%</span>`
+    : (p.price ?? '');
 
   const badge = document.getElementById('modal-status-badge');
-  badge.textContent = p.status === 'sold' ? (lang === 'ar' ? 'نفذ' : 'Sold Out') : (lang === 'ar' ? 'متاح' : 'Available');
-  badge.className = 'modal-status-badge ' + (p.status === 'sold' ? 's-sold' : 's-avail');
+  if (p.status === 'sold') {
+    badge.textContent = lang === 'ar' ? 'نفذ' : 'Sold Out';
+    badge.className = 'modal-status-badge s-sold';
+  } else if (p.status === 'coming_soon') {
+    badge.textContent = lang === 'ar' ? 'قريباً' : 'Coming Soon';
+    badge.className = 'modal-status-badge s-sold';
+  } else {
+    badge.textContent = lang === 'ar' ? 'متاح' : 'Available';
+    badge.className = 'modal-status-badge s-avail';
+  }
+
+  // Scarcity messaging (one-of-a-kind pieces)
+  const scarcityEl = document.getElementById('modal-scarcity-text');
+  const qty = p.qty === '' || p.qty === null || p.qty === undefined ? null : Number(p.qty);
+  if (qty === 1 && p.status !== 'sold') {
+    scarcityEl.textContent = lang === 'ar' ? 'قطعة واحدة فقط ♡' : 'Only One Available ♡';
+    scarcityEl.classList.remove('hidden');
+  } else {
+    scarcityEl.classList.add('hidden');
+  }
 
   const imgs = p.images || [];
   currentModalImages = imgs;
 
   const mainImg = document.getElementById('modal-main-img');
   mainImg.innerHTML = imgs[0]
-    ? `<img src="${imgs[0]}" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="openImageViewer(0)" loading="lazy" alt="${p.name}">`
+    ? `<img src="${imgFull(imgs[0])}" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="openImageViewer(0)" loading="lazy" decoding="async" alt="${p.name}">`
     : '<div style="font-size:60px;display:flex;align-items:center;justify-content:center;height:100%">🌸</div>';
 
   document.getElementById('modal-thumbs').innerHTML = imgs.map((img, i) =>
-    `<div class="modal-thumb${i === 0 ? ' active' : ''}" onclick="switchModalImg('${img}',${i})" tabindex="0" onkeydown="if(event.key==='Enter')switchModalImg('${img}',${i})">
-      <img src="${img}" alt="View ${i+1}" loading="lazy">
+    `<div class="modal-thumb${i === 0 ? ' active' : ''}" onclick="switchModalImg(${i})" tabindex="0" onkeydown="if(event.key==='Enter')switchModalImg(${i})">
+      <img src="${imgThumb(img)}" alt="View ${i+1}" loading="lazy" decoding="async">
     </div>`).join('');
 
   // Measurements
@@ -1019,9 +1222,9 @@ function openModal(id) {
     notesWrap.classList.add('hidden');
   }
 
-  // WhatsApp order button
+  // WhatsApp order button — hidden for Sold and Coming Soon (nothing to order yet)
   const waBtn = document.getElementById('modal-wa-btn');
-  waBtn.style.display = p.status === 'sold' ? 'none' : 'flex';
+  waBtn.style.display = (p.status === 'sold' || p.status === 'coming_soon') ? 'none' : 'flex';
 
   document.getElementById('modal').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -1034,9 +1237,10 @@ function orderViaWhatsApp() {
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
-function switchModalImg(src, idx) {
+function switchModalImg(idx) {
+  const src = imgFull(currentModalImages[idx]);
   document.getElementById('modal-main-img').innerHTML =
-    `<img src="${src}" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="openImageViewer(${idx})" alt="Product view ${idx+1}">`;
+    `<img src="${src}" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="openImageViewer(${idx})" decoding="async" alt="Product view ${idx+1}">`;
   document.querySelectorAll('.modal-thumb').forEach((t,i) =>
     t.classList.toggle('active', i === idx));
 }
@@ -1055,7 +1259,7 @@ function openImageViewer(idx) {
   currentViewerImageIndex = typeof idx === 'number' ? idx : 0;
   const img = currentModalImages[currentViewerImageIndex];
   if (!img) return;
-  document.getElementById('viewer-img').src = img;
+  document.getElementById('viewer-img').src = imgFull(img);
   updateViewerNav();
   document.getElementById('image-viewer').classList.add('open');
 }
@@ -1086,7 +1290,7 @@ function updateViewerNav() {
 function prevImage() {
   if (currentViewerImageIndex > 0) {
     currentViewerImageIndex--;
-    document.getElementById('viewer-img').src = currentModalImages[currentViewerImageIndex];
+    document.getElementById('viewer-img').src = imgFull(currentModalImages[currentViewerImageIndex]);
     updateViewerNav();
   }
 }
@@ -1094,7 +1298,7 @@ function prevImage() {
 function nextImage() {
   if (currentViewerImageIndex < currentModalImages.length - 1) {
     currentViewerImageIndex++;
-    document.getElementById('viewer-img').src = currentModalImages[currentViewerImageIndex];
+    document.getElementById('viewer-img').src = imgFull(currentModalImages[currentViewerImageIndex]);
     updateViewerNav();
   }
 }
@@ -1157,6 +1361,21 @@ function showAdminPage(page, el) {
   if (el) el.classList.add('active');
   if (page === 'overview') loadAdminData();
   if (page === 'products') renderAdminTable();
+  if (page === 'settings') {
+    const toggle = document.getElementById('s-discounts-enabled');
+    if (toggle) toggle.checked = discountsEnabled;
+  }
+}
+
+function statusBadge(p) {
+  const map = {
+    sold: ['badge-sold', 'Sold'],
+    coming_soon: ['badge-coming', 'Coming Soon'],
+    hidden: ['badge-hidden', 'Hidden'],
+    available: ['badge-avail', 'Available']
+  };
+  const [cls, label] = map[p.status] || map.available;
+  return `<span class="badge ${cls}">${label}</span>`;
 }
 
 function loadAdminData() {
@@ -1172,7 +1391,7 @@ function loadAdminData() {
         ${products.slice(0,5).map(p => `<tr>
           <td style="font-size:11px;color:var(--text-soft)">${p.product_id||p.id}</td>
           <td>${p.name}</td><td>${p.price}</td>
-          <td><span class="badge ${p.status==='sold'?'badge-sold':'badge-avail'}">${p.status==='sold'?'Sold':'Available'}</span></td>
+          <td>${statusBadge(p)}</td>
         </tr>`).join('')}
       </tbody></table>`
     : '<p style="color:var(--text-soft);font-size:13px;padding:12px 0">No products yet.</p>';
@@ -1180,11 +1399,11 @@ function loadAdminData() {
 
 function renderAdminTable() {
   document.getElementById('admin-tbody').innerHTML = products.map(p => `<tr>
-    <td>${p.images?.[0]?`<img src="${p.images[0]}" class="tbl-thumb" alt="${p.name}">`:'<div class="tbl-thumb" style="background:var(--soft-lav);border-radius:var(--r-sm)"></div>'}</td>
-    <td style="font-size:11px;color:var(--text-soft);white-space:nowrap">${p.product_id||p.id}</td>
+    <td>${p.images?.[0]?`<img src="${imgThumb(p.images[0])}" class="tbl-thumb" alt="${p.name}" loading="lazy" decoding="async">`:'<div class="tbl-thumb" style="background:var(--soft-lav);border-radius:var(--r-sm)"></div>'}</td>
+    <td style="font-size:11px;color:var(--text-soft);white-space:nowrap">${p.product_id||p.id}${p.featured ? ' ★' : ''}</td>
     <td style="font-weight:500">${p.name}</td>
-    <td style="color:var(--violet);font-weight:600">${p.price}</td>
-    <td><span class="badge ${p.status==='sold'?'badge-sold':'badge-avail'}">${p.status==='sold'?'Sold':'Available'}</span></td>
+    <td style="color:var(--violet);font-weight:600">${p.sale_price ? `${p.sale_price} <span style="color:var(--text-soft);text-decoration:line-through;font-weight:400">${p.price}</span>` : p.price}</td>
+    <td>${statusBadge(p)}</td>
     <td><div class="action-row">
       <button class="btn-toggle ${p.status==='sold'?'tgl-avail':'tgl-sold'}" onclick="toggleStatus('${p.id}')">${p.status==='sold'?'Set Available':'Set Sold'}</button>
       <button class="act-btn btn-del" onclick="deleteProduct('${p.id}')">Delete</button>
@@ -1222,6 +1441,8 @@ async function deleteProduct(id) {
 async function saveProduct() {
   const name = document.getElementById('f-name').value.trim();
   const price = document.getElementById('f-price').value.trim();
+  const salePriceRaw = document.getElementById('f-sale-price').value.trim();
+  const qtyRaw = document.getElementById('f-qty').value.trim();
   if (!name || !price) { toast('Please fill name and price', 'error'); return; }
   if (!uploadedImages.length) { toast('Please add at least one image', 'error'); return; }
   const btn = document.querySelector('#page-add .btn-primary');
@@ -1236,6 +1457,9 @@ async function saveProduct() {
     const { error } = await supabaseClient.from('products').insert([{
       product_id: 'VELUNE-' + Math.random().toString().slice(2,6),
       name, price,
+      sale_price: salePriceRaw || null,
+      qty: qtyRaw === '' ? null : Number(qtyRaw),
+      featured: document.getElementById('f-featured').checked,
       category: document.getElementById('f-cat').value,
       status: document.getElementById('f-status').value,
       notes: document.getElementById('f-notes').value,
@@ -1257,9 +1481,10 @@ async function saveProduct() {
 
 function resetAddForm() {
   uploadedImages = [];
-  ['f-name','f-price','f-notes','f-shoulder','f-bust','f-waist','f-sleeve','f-length'].forEach(id => {
+  ['f-name','f-price','f-sale-price','f-qty','f-notes','f-shoulder','f-bust','f-waist','f-sleeve','f-length'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  document.getElementById('f-featured').checked = false;
   document.getElementById('preview-strip').innerHTML = '';
   document.getElementById('image-input').value = '';
 }
@@ -1274,14 +1499,17 @@ async function handleFiles(files) {
   if (!files.length) return;
   for (let file of files) {
     if (!file.type.startsWith('image/')) continue;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target.result;
-      uploadedImages.push(dataUrl);
+    try {
+      const [thumb, full] = await Promise.all([
+        compressImage(file, 480, 0.7),   // small, for grid/listing views
+        compressImage(file, 1600, 0.82)  // larger, for modal/gallery/zoom
+      ]);
+      uploadedImages.push({ thumb, full });
       renderPreviews();
       toast(`Image added (${uploadedImages.length})`);
-    };
-    reader.readAsDataURL(file);
+    } catch (e) {
+      toast('Could not process that image', 'error');
+    }
   }
 }
 
@@ -1293,7 +1521,7 @@ function removeImage(idx) {
 function renderPreviews() {
   document.getElementById('preview-strip').innerHTML = uploadedImages.map((img, i) => `
     <div class="prev-wrap">
-      <img src="${img}" alt="preview ${i+1}">
+      <img src="${imgThumb(img)}" alt="preview ${i+1}">
       <button type="button" class="prev-rm" onclick="removeImage(${i})" aria-label="Remove image">✕</button>
     </div>`).join('');
 }
