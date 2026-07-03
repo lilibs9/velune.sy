@@ -214,7 +214,7 @@ h1 span{color:var(--violet);font-style:italic;font-weight:600}
 .product-card.sold-card{opacity:0.62;filter:saturate(0.4)}
 .product-card.sold-card:hover{opacity:0.78;filter:saturate(0.55)}
 .img-wrap{position:relative;width:100%;aspect-ratio:1;overflow:hidden;background:var(--blush-light);display:flex;align-items:center;justify-content:center}
-.img-wrap img{width:100%;height:100%;object-fit:cover;transition:transform .35s}
+.img-wrap img,.img-wrap .lazy-product-img{width:100%;height:100%;object-fit:cover;transition:transform .35s,opacity .35s ease}
 .product-card:hover .img-wrap img{transform:scale(1.06)}
 .img-placeholder{font-size:44px}
 .sold-badge{
@@ -237,8 +237,27 @@ h1 span{color:var(--violet);font-style:italic;font-weight:600}
 .p-id{font-size:10px;letter-spacing:0.1em;color:var(--text-soft);text-transform:uppercase;margin-bottom:4px}
 .p-name{font-size:clamp(13px,3.2vw,15px);color:var(--text-dark);font-weight:500;margin-bottom:10px;line-height:1.3}
 [dir="rtl"] .p-name{font-family:'Tajawal',sans-serif}
-.p-footer{display:flex;justify-content:space-between;align-items:center;gap:4px}
+.p-footer{display:flex;justify-content:space-between;align-items:center;gap:4px;flex-wrap:wrap}
 .p-price{font-size:clamp(12px,3vw,14px);color:var(--violet);font-weight:700}
+.p-price-wrap{display:flex;flex-direction:column;gap:2px}
+.p-price-old{font-size:11px;color:var(--text-soft);text-decoration:line-through;font-weight:400}
+.p-price-sale{font-size:clamp(12px,3vw,14px);color:var(--violet);font-weight:700}
+.discount-badge{
+  display:inline-block;background:var(--blush);color:var(--plum);
+  font-size:9px;font-weight:700;padding:3px 7px;border-radius:var(--r-sm);
+  letter-spacing:0.04em;margin-top:2px;width:fit-content
+}
+.img-wrap .img-skeleton{position:absolute;inset:0;border-radius:0}
+.img-wrap .lazy-product-img{opacity:0;transition:opacity .35s ease}
+.img-wrap .lazy-product-img.loaded{opacity:1}
+.img-wrap .img-skeleton.hidden{display:none}
+.load-more-wrap{text-align:center;margin-top:clamp(24px,4vw,40px);max-width:1280px;margin-inline:auto}
+.load-more-btn{
+  padding:14px 32px;border:1.5px solid var(--violet);background:transparent;
+  color:var(--violet);border-radius:var(--r-lg);font-size:13px;font-weight:600;
+  cursor:pointer;font-family:inherit;transition:all .25s;min-height:48px
+}
+.load-more-btn:hover{background:var(--soft-lav)}
 .p-status{font-size:10px;padding:4px 8px;border-radius:var(--r-sm);font-weight:600;white-space:nowrap}
 .p-status.s-avail{background:rgba(192,132,252,0.15);color:var(--violet)}
 .p-status.s-sold{background:rgba(192,80,80,0.12);color:#c05050}
@@ -286,6 +305,9 @@ h1 span{color:var(--violet);font-style:italic;font-weight:600}
 .modal-status-badge.s-avail{background:rgba(192,132,252,0.15);color:var(--violet)}
 .modal-status-badge.s-sold{background:rgba(192,80,80,0.12);color:#c05050}
 .modal-price{font-size:clamp(16px,3.5vw,20px);color:var(--violet);font-weight:700;margin-bottom:18px}
+.modal-price-old{font-size:14px;color:var(--text-soft);text-decoration:line-through;font-weight:400;margin-inline-end:10px}
+.modal-price-sale{font-size:clamp(18px,3.5vw,22px);color:var(--violet);font-weight:700}
+.modal-discount-badge{display:inline-block;background:var(--blush);color:var(--plum);font-size:11px;font-weight:700;padding:4px 10px;border-radius:var(--r-sm);margin-inline-start:8px;vertical-align:middle}
 .modal-meas-wrap{margin-bottom:18px;padding:14px;background:var(--soft-lav);border-radius:var(--r-md)}
 .modal-meas-wrap.hidden{display:none}
 .meas-title{font-size:11px;font-weight:700;color:var(--text-dark);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.06em}
@@ -404,6 +426,9 @@ h1 span{color:var(--violet);font-style:italic;font-weight:600}
 .btn-toggle.tgl-avail{background:rgba(192,132,252,0.12);color:var(--violet)}
 .btn-del{color:#c05050;border-color:rgba(192,80,80,0.3)}
 .btn-del:hover{background:rgba(192,80,80,0.1)}
+.btn-edit{color:var(--violet)}
+.btn-archive{color:var(--text-mid)}
+.badge-archived{background:rgba(107,78,126,0.15);color:var(--text-mid)}
 
 /* ───── FOOTER ───── */
 footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw,60px) clamp(20px,4vw,32px);color:rgba(255,255,255,0.65)}
@@ -440,6 +465,9 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
 .badge{display:inline-block;padding:4px 10px;border-radius:var(--r-sm);font-size:11px;font-weight:600}
 .badge-avail{background:rgba(192,132,252,0.15);color:var(--violet)}
 .badge-sold{background:rgba(192,80,80,0.12);color:#c05050}
+
+/* ───── UTILITIES ───── */
+.hidden{display:none!important}
 
 /* ───── EMPTY STATE ───── */
 .empty-state{text-align:center;padding:clamp(40px,8vw,80px) 20px;color:var(--text-soft)}
@@ -632,6 +660,9 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
     </div>
 
     <div id="products-grid" class="products-grid"></div>
+    <div class="load-more-wrap hidden" id="load-more-wrap">
+      <button class="load-more-btn" id="load-more-btn" onclick="loadMoreProducts()" data-en="Load More" data-ar="تحميل المزيد">Load More</button>
+    </div>
   </section>
 
   <!-- SOLD SECTION -->
@@ -803,10 +834,11 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
         </div>
       </section>
 
-      <!-- ADD -->
+      <!-- ADD / EDIT -->
       <section class="admin-page" id="page-add">
         <div class="a-page-header">
-          <h1 class="a-page-title">Add New Product</h1>
+          <h1 class="a-page-title" id="add-page-title">Add New Product</h1>
+          <p class="a-page-sub hidden" id="edit-mode-hint">Editing product — changes save to the same listing</p>
         </div>
         <div class="a-card">
           <div class="form-group">
@@ -827,8 +859,13 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
             <input class="form-input" id="f-name" type="text" placeholder="e.g. Lavender Dress"/>
           </div>
           <div class="form-group">
-            <label class="form-label" for="f-price">Price</label>
+            <label class="form-label" for="f-price">Original Price</label>
             <input class="form-input" id="f-price" type="text" placeholder="e.g. 45 SAR"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-sale-price">Sale Price (optional)</label>
+            <input class="form-input" id="f-sale-price" type="text" placeholder="Leave empty for no discount"/>
+            <p style="font-size:11px;color:var(--text-soft);margin-top:6px">If set lower than original, a discount badge appears on the storefront.</p>
           </div>
           <div class="form-group">
             <label class="form-label" for="f-cat">Category</label>
@@ -865,7 +902,8 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
           </div>
 
           <div style="display:flex;gap:12px;flex-wrap:wrap">
-            <button class="btn-primary" onclick="saveProduct()" style="flex:1;min-width:140px">Save Product</button>
+            <button class="btn-primary" id="save-product-btn" onclick="saveProduct()" style="flex:1;min-width:140px">Save Product</button>
+            <button class="btn-outline" id="cancel-edit-btn" onclick="cancelEdit()" style="padding:13px 20px;font-size:13px;display:none">Cancel Edit</button>
             <button class="btn-outline" onclick="resetAddForm()" style="padding:13px 20px;font-size:13px">Clear Form</button>
           </div>
         </div>
@@ -888,11 +926,21 @@ let uploadedImages = [];
 let currentModalImages = [];
 let currentViewerImageIndex = 0;
 let currentModalProductId = null;
+let editingProductId = null;
+let showArchivedInAdmin = false;
+let visibleProductCount = 12;
+const PAGE_SIZE = 12;
+const META_CACHE_KEY = 'velune_products_meta_v1';
+const META_FIELDS = 'id,product_id,name,price,original_price,sale_price,category,status,archived,notes,measurements,created_at';
+const imageCache = {};
+const imageLoadPromises = {};
+let lazyImageObserver = null;
 
 const WHATSAPP_NUMBER = '+963956763579';
 
 // ============ INIT ==============
 window.addEventListener('load', async () => {
+  initLazyImageObserver();
   if (typeof supabase !== 'undefined') {
     supabaseClient = supabase.createClient(
       'https://ucjlriaeeriucojqedur.supabase.co',
@@ -900,24 +948,204 @@ window.addEventListener('load', async () => {
     );
     loadProducts();
   }
-  // Show admin email on wider screens
   const emailEl = document.getElementById('admin-user-email');
   if (window.innerWidth > 640) emailEl.style.display = 'block';
 });
 
-// ============ PRODUCTS ============
-async function loadProducts() {
-  if (!supabaseClient) return;
-  showSkeletonLoading();
+// ============ PERFORMANCE HELPERS ============
+function initLazyImageObserver() {
+  if (lazyImageObserver || !('IntersectionObserver' in window)) return;
+  lazyImageObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const img = entry.target;
+      const id = img.dataset.id;
+      if (id) loadProductImages(id);
+      lazyImageObserver.unobserve(img);
+    });
+  }, { rootMargin: '120px', threshold: 0.01 });
+}
+
+function observeLazyImages() {
+  if (!lazyImageObserver) return;
+  document.querySelectorAll('.lazy-product-img:not(.loaded)').forEach(img => {
+    lazyImageObserver.observe(img);
+  });
+}
+
+function parsePrice(val) {
+  if (!val) return NaN;
+  const n = parseFloat(String(val).replace(/[^\d.]/g, ''));
+  return isNaN(n) ? NaN : n;
+}
+
+function isOnSale(p) {
+  const sale = parsePrice(p.sale_price);
+  const orig = parsePrice(p.original_price || p.price);
+  return !isNaN(sale) && !isNaN(orig) && sale > 0 && sale < orig;
+}
+
+function getDiscountPct(p) {
+  const sale = parsePrice(p.sale_price);
+  const orig = parsePrice(p.original_price || p.price);
+  if (!isOnSale(p)) return 0;
+  return Math.round((1 - sale / orig) * 100);
+}
+
+function formatPriceHtml(p, compact) {
+  if (isOnSale(p)) {
+    const orig = p.original_price || p.price;
+    const pct = getDiscountPct(p);
+    if (compact) {
+      return `<div class="p-price-wrap">
+        <span class="p-price-old">${orig}</span>
+        <span class="p-price-sale">${p.sale_price}</span>
+        <span class="discount-badge">${pct}% OFF</span>
+      </div>`;
+    }
+    return `<span class="modal-price-old">${orig}</span><span class="modal-price-sale">${p.sale_price}</span><span class="modal-discount-badge">${pct}% OFF</span>`;
+  }
+  return compact
+    ? `<span class="p-price">${p.price}</span>`
+    : `<span class="modal-price-sale">${p.price}</span>`;
+}
+
+function isArchived(p) {
+  return p.archived === true || p.archived === 'true';
+}
+
+function isStorefrontVisible(p) {
+  return !isArchived(p);
+}
+
+function cacheMetadata() {
   try {
-    const { data, error } = await supabaseClient
-      .from('products').select('*').order('created_at', { ascending: false });
+    const meta = products.map(({ images, ...rest }) => rest);
+    sessionStorage.setItem(META_CACHE_KEY, JSON.stringify({ ts: Date.now(), data: meta }));
+  } catch (_) { /* quota exceeded — skip */ }
+}
+
+function loadCachedMetadata() {
+  try {
+    const raw = sessionStorage.getItem(META_CACHE_KEY);
+    if (!raw) return null;
+    const { ts, data } = JSON.parse(raw);
+    if (Date.now() - ts > 5 * 60 * 1000) return null;
+    return data;
+  } catch (_) { return null; }
+}
+
+async function compressImage(file, maxW = 1200, quality = 0.78) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if (w > maxW) { h = Math.round(h * maxW / w); w = maxW; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function loadProductImages(productId) {
+  if (imageCache[productId]) {
+    applyProductImage(productId, imageCache[productId]);
+    return imageCache[productId];
+  }
+  if (imageLoadPromises[productId]) return imageLoadPromises[productId];
+
+  imageLoadPromises[productId] = (async () => {
+    if (!supabaseClient) return [];
+    try {
+      const { data, error } = await supabaseClient
+        .from('products').select('images').eq('id', productId).single();
+      if (error) throw error;
+      const imgs = data?.images || [];
+      imageCache[productId] = imgs;
+      const p = products.find(x => x.id === productId);
+      if (p) p.images = imgs;
+      applyProductImage(productId, imgs);
+      return imgs;
+    } catch (e) {
+      console.warn('Image load failed for', productId, e);
+      return [];
+    } finally {
+      delete imageLoadPromises[productId];
+    }
+  })();
+  return imageLoadPromises[productId];
+}
+
+function applyProductImage(productId, images) {
+  document.querySelectorAll(`.lazy-product-img[data-id="${productId}"]`).forEach(img => {
+    const wrap = img.closest('.img-wrap');
+    if (images?.[0]) {
+      img.src = images[0];
+      img.onload = () => {
+        img.classList.add('loaded');
+        wrap?.querySelector('.img-skeleton')?.classList.add('hidden');
+      };
+      if (img.complete) {
+        img.classList.add('loaded');
+        wrap?.querySelector('.img-skeleton')?.classList.add('hidden');
+      }
+    } else {
+      wrap?.querySelector('.img-skeleton')?.classList.add('hidden');
+      if (!wrap?.querySelector('.img-placeholder')) {
+        const ph = document.createElement('div');
+        ph.className = 'img-placeholder';
+        ph.textContent = '🌸';
+        wrap?.appendChild(ph);
+      }
+    }
+  });
+}
+
+// ============ PRODUCTS ============
+async function loadProducts(silent) {
+  if (!supabaseClient) return;
+
+  const cached = loadCachedMetadata();
+  if (cached?.length && !silent) {
+    products = cached.map(p => ({ ...p, images: imageCache[p.id] || null }));
+    visibleProductCount = PAGE_SIZE;
+    renderProducts();
+  } else if (!silent) {
+    showSkeletonLoading();
+  }
+
+  try {
+    let data, error;
+    ({ data, error } = await supabaseClient
+      .from('products')
+      .select(META_FIELDS)
+      .order('created_at', { ascending: false }));
+    if (error) {
+      ({ data, error } = await supabaseClient
+        .from('products')
+        .select('id,product_id,name,price,category,status,notes,measurements,created_at')
+        .order('created_at', { ascending: false }));
+    }
     if (error) throw error;
-    products = data || [];
+    products = (data || []).map(p => ({
+      ...p,
+      images: imageCache[p.id] || p.images || null
+    }));
+    cacheMetadata();
+    if (!silent) visibleProductCount = PAGE_SIZE;
     renderProducts();
-  } catch(e) {
+  } catch (e) {
     console.error('Load error:', e);
-    renderProducts();
+    if (!products.length) renderProducts();
   }
 }
 
@@ -937,37 +1165,73 @@ function showSkeletonLoading() {
     </div>`).join('');
 }
 
+function getFilteredProducts() {
+  const avail = products.filter(p => p.status === 'available' && isStorefrontVisible(p));
+  const sold = products.filter(p => p.status === 'sold' && isStorefrontVisible(p));
+  return { avail, sold };
+}
+
 function renderProducts() {
-  const avail = products.filter(p => p.status === 'available');
-  const sold = products.filter(p => p.status === 'sold');
+  const { avail, sold } = getFilteredProducts();
   const grid = document.getElementById('products-grid');
   const soldGrid = document.getElementById('sold-grid');
-  grid.innerHTML = avail.length
-    ? avail.map(productCard).join('')
+  const visibleAvail = avail.slice(0, visibleProductCount);
+
+  grid.innerHTML = visibleAvail.length
+    ? visibleAvail.map(productCard).join('')
     : '<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">🌸</span><p class="empty-msg">No products available yet</p></div>';
+
+  const loadMoreWrap = document.getElementById('load-more-wrap');
+  if (avail.length > visibleProductCount) {
+    loadMoreWrap.classList.remove('hidden');
+    document.getElementById('load-more-btn').textContent = lang === 'ar'
+      ? `تحميل المزيد (${visibleAvail.length}/${avail.length})`
+      : `Load More (${visibleAvail.length}/${avail.length})`;
+  } else {
+    loadMoreWrap.classList.add('hidden');
+  }
+
   if (sold.length) {
     document.getElementById('sold-section').classList.remove('hidden');
-    soldGrid.innerHTML = sold.map(productCard).join('');
+    soldGrid.innerHTML = sold.slice(0, visibleProductCount).map(productCard).join('');
   } else {
     document.getElementById('sold-section').classList.add('hidden');
   }
+
+  observeLazyImages();
+}
+
+function loadMoreProducts() {
+  visibleProductCount += PAGE_SIZE;
+  renderProducts();
+  document.getElementById('load-more-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
 }
 
 function productCard(p) {
   const sold = p.status === 'sold';
-  const img = p.images?.[0]
-    ? `<img src="${p.images[0]}" alt="${p.name}" loading="lazy" decoding="async">`
-    : '<div class="img-placeholder">🌸</div>';
+  const hasCachedImg = p.images?.[0];
+  const imgBlock = hasCachedImg
+    ? `<img class="lazy-product-img loaded" src="${p.images[0]}" alt="${escapeHtml(p.name)}" decoding="async">`
+    : `<div class="img-skeleton skeleton"></div>
+       <img class="lazy-product-img" data-id="${p.id}" alt="${escapeHtml(p.name)}" decoding="async">`;
+  const priceHtml = formatPriceHtml(p, true);
   return `<div class="product-card${sold ? ' sold-card' : ''}" onclick="openModal('${p.id}')" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openModal('${p.id}')">
     <div class="img-wrap">
-      ${img}
+      ${imgBlock}
       ${sold ? '<span class="sold-badge">SOLD</span>' : ''}
+      ${isOnSale(p) && !sold ? `<span class="discount-badge" style="position:absolute;top:10px;inset-inline-end:10px;margin:0">${getDiscountPct(p)}% OFF</span>` : ''}
     </div>
     <div class="p-info">
-      <p class="p-id">${p.product_id || p.id}</p>
-      <p class="p-name">${p.name}</p>
+      <p class="p-id">${escapeHtml(p.product_id || p.id)}</p>
+      <p class="p-name">${escapeHtml(p.name)}</p>
       <div class="p-footer">
-        <span class="p-price">${p.price}</span>
+        ${priceHtml}
         <span class="p-status ${sold ? 's-sold' : 's-avail'}">${sold ? 'Sold' : 'Available'}</span>
       </div>
     </div>
@@ -975,14 +1239,26 @@ function productCard(p) {
 }
 
 // ============ MODAL ============
-function openModal(id) {
-  const p = products.find(x => x.id === id);
+async function openModal(id) {
+  let p = products.find(x => x.id === id);
   if (!p) return;
+
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('modal-main-img').innerHTML = '<div class="skeleton skeleton-card" style="width:100%;height:100%;border-radius:0"></div>';
+
+  if (!p.images?.length) {
+    const imgs = await loadProductImages(id);
+    p = products.find(x => x.id === id);
+    if (p) p.images = imgs;
+  }
+
+  if (!p) { closeModal(); return; }
   currentModalProductId = p.product_id || p.id;
 
   document.getElementById('modal-id-text').textContent = currentModalProductId;
-  document.getElementById('modal-title-text').innerHTML = p.name;
-  document.getElementById('modal-price-text').textContent = p.price;
+  document.getElementById('modal-title-text').innerHTML = escapeHtml(p.name);
+  document.getElementById('modal-price-text').innerHTML = formatPriceHtml(p, false);
 
   const badge = document.getElementById('modal-status-badge');
   badge.textContent = p.status === 'sold' ? (lang === 'ar' ? 'نفذ' : 'Sold Out') : (lang === 'ar' ? 'متاح' : 'Available');
@@ -993,21 +1269,20 @@ function openModal(id) {
 
   const mainImg = document.getElementById('modal-main-img');
   mainImg.innerHTML = imgs[0]
-    ? `<img src="${imgs[0]}" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="openImageViewer(0)" loading="lazy" alt="${p.name}">`
+    ? `<img src="${imgs[0]}" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="openImageViewer(0)" alt="${escapeHtml(p.name)}">`
     : '<div style="font-size:60px;display:flex;align-items:center;justify-content:center;height:100%">🌸</div>';
 
   document.getElementById('modal-thumbs').innerHTML = imgs.map((img, i) =>
-    `<div class="modal-thumb${i === 0 ? ' active' : ''}" onclick="switchModalImg('${img}',${i})" tabindex="0" onkeydown="if(event.key==='Enter')switchModalImg('${img}',${i})">
+    `<div class="modal-thumb${i === 0 ? ' active' : ''}" onclick="switchModalImg(${i})" tabindex="0" onkeydown="if(event.key==='Enter')switchModalImg(${i})">
       <img src="${img}" alt="View ${i+1}" loading="lazy">
     </div>`).join('');
 
-  // Measurements
   const m = p.measurements || {};
   const measMap = { 'Shoulder':'الكتف','Bust':'الصدر','Waist':'الخصر','Sleeve Length':'طول الكم','Length':'الطول' };
   const measKeys = Object.keys(m).filter(k => m[k]);
   document.getElementById('modal-meas-grid').innerHTML = measKeys.map(k => {
     const label = lang === 'ar' ? (measMap[k] || k) : k;
-    return `<div class="meas-item"><span class="meas-label">${label}</span><span class="meas-val">${m[k]} cm</span></div>`;
+    return `<div class="meas-item"><span class="meas-label">${label}</span><span class="meas-val">${escapeHtml(String(m[k]))} cm</span></div>`;
   }).join('');
   document.getElementById('modal-meas-wrap').style.display = measKeys.length ? 'block' : 'none';
 
@@ -1019,12 +1294,8 @@ function openModal(id) {
     notesWrap.classList.add('hidden');
   }
 
-  // WhatsApp order button
   const waBtn = document.getElementById('modal-wa-btn');
   waBtn.style.display = p.status === 'sold' ? 'none' : 'flex';
-
-  document.getElementById('modal').classList.add('open');
-  document.body.style.overflow = 'hidden';
 }
 
 function orderViaWhatsApp() {
@@ -1034,10 +1305,12 @@ function orderViaWhatsApp() {
   window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
-function switchModalImg(src, idx) {
+function switchModalImg(idx) {
+  const src = currentModalImages[idx];
+  if (!src) return;
   document.getElementById('modal-main-img').innerHTML =
     `<img src="${src}" style="width:100%;height:100%;object-fit:cover;cursor:pointer" onclick="openImageViewer(${idx})" alt="Product view ${idx+1}">`;
-  document.querySelectorAll('.modal-thumb').forEach((t,i) =>
+  document.querySelectorAll('.modal-thumb').forEach((t, i) =>
     t.classList.toggle('active', i === idx));
 }
 
@@ -1050,7 +1323,6 @@ function handleModalClick(e) {
   if (e.target.id === 'modal') closeModal();
 }
 
-// Image Viewer
 function openImageViewer(idx) {
   currentViewerImageIndex = typeof idx === 'number' ? idx : 0;
   const img = currentModalImages[currentViewerImageIndex];
@@ -1099,7 +1371,6 @@ function nextImage() {
   }
 }
 
-// Touch swipe for viewer
 let touchStartX = 0;
 document.getElementById('image-viewer')?.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
 document.getElementById('image-viewer')?.addEventListener('touchend', e => {
@@ -1107,7 +1378,6 @@ document.getElementById('image-viewer')?.addEventListener('touchend', e => {
   if (Math.abs(diff) > 50) diff > 0 ? nextImage() : prevImage();
 }, { passive: true });
 
-// Keyboard shortcuts
 document.addEventListener('keydown', e => {
   if (document.getElementById('image-viewer').classList.contains('open')) {
     if (e.key === 'ArrowRight') nextImage();
@@ -1125,7 +1395,7 @@ async function doLogin(e) {
   const password = document.getElementById('l-password').value;
   const errEl = document.getElementById('l-error');
   const btn = e.target.querySelector('button[type=submit]');
-  btn.textContent = '...';btn.disabled = true;
+  btn.textContent = '...'; btn.disabled = true;
   try {
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) throw error;
@@ -1133,12 +1403,12 @@ async function doLogin(e) {
     document.getElementById('admin-user-email').textContent = currentUser.email;
     showView('admin-dashboard');
     loadAdminData();
-    errEl.className = '';errEl.textContent = '';
-  } catch(err) {
+    errEl.className = ''; errEl.textContent = '';
+  } catch (err) {
     errEl.className = 'show';
     errEl.textContent = 'Invalid credentials. Please try again.';
   } finally {
-    btn.textContent = lang === 'ar' ? 'دخول' : 'Sign In';btn.disabled = false;
+    btn.textContent = lang === 'ar' ? 'دخول' : 'Sign In'; btn.disabled = false;
   }
 }
 
@@ -1155,41 +1425,147 @@ function showAdminPage(page, el) {
   document.querySelectorAll('.a-nav-item').forEach(i => i.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
   if (el) el.classList.add('active');
+  if (page === 'add' && !editingProductId) resetAddForm(false);
   if (page === 'overview') loadAdminData();
   if (page === 'products') renderAdminTable();
 }
 
+function getAdminProducts() {
+  return showArchivedInAdmin ? products : products.filter(p => !isArchived(p));
+}
+
+function toggleShowArchived() {
+  showArchivedInAdmin = !showArchivedInAdmin;
+  renderAdminTable();
+}
+
 function loadAdminData() {
-  const total = products.length;
-  const avail = products.filter(p => p.status === 'available').length;
-  const sold = products.filter(p => p.status === 'sold').length;
+  const active = products.filter(p => !isArchived(p));
+  const total = active.length;
+  const avail = active.filter(p => p.status === 'available').length;
+  const sold = active.filter(p => p.status === 'sold').length;
+  const archived = products.filter(p => isArchived(p)).length;
   document.getElementById('stat-grid').innerHTML = `
-    <div class="stat-tile"><p class="stat-num">${total}</p><p class="stat-lbl">Total</p></div>
+    <div class="stat-tile"><p class="stat-num">${total}</p><p class="stat-lbl">Active</p></div>
     <div class="stat-tile"><p class="stat-num">${avail}</p><p class="stat-lbl">Available</p></div>
-    <div class="stat-tile"><p class="stat-num">${sold}</p><p class="stat-lbl">Sold</p></div>`;
-  document.getElementById('recent-list').innerHTML = products.length
+    <div class="stat-tile"><p class="stat-num">${sold}</p><p class="stat-lbl">Sold</p></div>
+    ${archived ? `<div class="stat-tile"><p class="stat-num">${archived}</p><p class="stat-lbl">Archived</p></div>` : ''}`;
+  document.getElementById('recent-list').innerHTML = active.length
     ? `<table class="a-table"><thead><tr><th>ID</th><th>Name</th><th>Price</th><th>Status</th></tr></thead><tbody>
-        ${products.slice(0,5).map(p => `<tr>
-          <td style="font-size:11px;color:var(--text-soft)">${p.product_id||p.id}</td>
-          <td>${p.name}</td><td>${p.price}</td>
+        ${active.slice(0, 5).map(p => `<tr>
+          <td style="font-size:11px;color:var(--text-soft)">${escapeHtml(p.product_id || p.id)}</td>
+          <td>${escapeHtml(p.name)}</td>
+          <td>${isOnSale(p) ? escapeHtml(p.sale_price) : escapeHtml(p.price)}</td>
           <td><span class="badge ${p.status==='sold'?'badge-sold':'badge-avail'}">${p.status==='sold'?'Sold':'Available'}</span></td>
         </tr>`).join('')}
       </tbody></table>`
     : '<p style="color:var(--text-soft);font-size:13px;padding:12px 0">No products yet.</p>';
 }
 
+function adminStatusBadge(p) {
+  if (isArchived(p)) return '<span class="badge badge-archived">Archived</span>';
+  return `<span class="badge ${p.status==='sold'?'badge-sold':'badge-avail'}">${p.status==='sold'?'Sold':'Available'}</span>`;
+}
+
+function adminPriceCell(p) {
+  if (isOnSale(p)) return `<span style="text-decoration:line-through;color:var(--text-soft);font-size:11px">${escapeHtml(p.original_price||p.price)}</span><br><span style="color:var(--violet);font-weight:600">${escapeHtml(p.sale_price)}</span>`;
+  return `<span style="color:var(--violet);font-weight:600">${escapeHtml(p.price)}</span>`;
+}
+
 function renderAdminTable() {
-  document.getElementById('admin-tbody').innerHTML = products.map(p => `<tr>
-    <td>${p.images?.[0]?`<img src="${p.images[0]}" class="tbl-thumb" alt="${p.name}">`:'<div class="tbl-thumb" style="background:var(--soft-lav);border-radius:var(--r-sm)"></div>'}</td>
-    <td style="font-size:11px;color:var(--text-soft);white-space:nowrap">${p.product_id||p.id}</td>
-    <td style="font-weight:500">${p.name}</td>
-    <td style="color:var(--violet);font-weight:600">${p.price}</td>
-    <td><span class="badge ${p.status==='sold'?'badge-sold':'badge-avail'}">${p.status==='sold'?'Sold':'Available'}</span></td>
-    <td><div class="action-row">
-      <button class="btn-toggle ${p.status==='sold'?'tgl-avail':'tgl-sold'}" onclick="toggleStatus('${p.id}')">${p.status==='sold'?'Set Available':'Set Sold'}</button>
-      <button class="act-btn btn-del" onclick="deleteProduct('${p.id}')">Delete</button>
-    </div></td>
-  </tr>`).join('');
+  const list = getAdminProducts();
+  const tbody = document.getElementById('admin-tbody');
+  const header = document.querySelector('#page-products .a-page-header');
+  header.innerHTML = `
+    <h1 class="a-page-title" data-en="All Products" data-ar="جميع المنتجات">All Products</h1>
+    <button class="btn-outline" style="margin-top:8px;padding:8px 16px;font-size:12px" onclick="toggleShowArchived()">
+      ${showArchivedInAdmin ? 'Hide Archived' : 'Show Archived'}
+    </button>`;
+
+  tbody.innerHTML = list.length ? list.map(p => {
+    const thumb = p.images?.[0]
+      ? `<img src="${p.images[0]}" class="tbl-thumb" alt="">`
+      : `<div class="tbl-thumb skeleton" style="border-radius:var(--r-sm)"></div>`;
+    return `<tr>
+      <td>${thumb}</td>
+      <td style="font-size:11px;color:var(--text-soft);white-space:nowrap">${escapeHtml(p.product_id||p.id)}</td>
+      <td style="font-weight:500">${escapeHtml(p.name)}</td>
+      <td>${adminPriceCell(p)}</td>
+      <td>${adminStatusBadge(p)}</td>
+      <td><div class="action-row">
+        <button class="act-btn btn-edit" onclick="openEditProduct('${p.id}')">Edit</button>
+        ${isArchived(p)
+          ? `<button class="act-btn btn-archive" onclick="restoreProduct('${p.id}')">Restore</button>`
+          : `<button class="act-btn btn-archive" onclick="archiveProduct('${p.id}')">Archive</button>`}
+        <button class="btn-toggle ${p.status==='sold'?'tgl-avail':'tgl-sold'}" onclick="toggleStatus('${p.id}')">${p.status==='sold'?'Set Available':'Set Sold'}</button>
+        <button class="act-btn btn-del" onclick="deleteProduct('${p.id}')">Delete</button>
+      </div></td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="6" style="padding:24px;color:var(--text-soft);text-align:center">No products found.</td></tr>';
+
+  list.filter(p => !p.images?.length).slice(0, 20).forEach(p => loadProductImages(p.id));
+}
+
+async function openEditProduct(id) {
+  let p = products.find(x => x.id === id);
+  if (!p) return;
+  if (!p.images?.length) {
+    toast('Loading product...', '');
+    await loadProductImages(id);
+    p = products.find(x => x.id === id);
+  }
+  editingProductId = id;
+  uploadedImages = [...(p.images || [])];
+  document.getElementById('f-name').value = p.name || '';
+  document.getElementById('f-price').value = p.original_price || p.price || '';
+  document.getElementById('f-sale-price').value = p.sale_price || '';
+  document.getElementById('f-cat').value = p.category || 'dress';
+  document.getElementById('f-status').value = p.status || 'available';
+  document.getElementById('f-notes').value = p.notes || '';
+  const m = p.measurements || {};
+  document.getElementById('f-shoulder').value = m.Shoulder || '';
+  document.getElementById('f-bust').value = m.Bust || '';
+  document.getElementById('f-waist').value = m.Waist || '';
+  document.getElementById('f-sleeve').value = m['Sleeve Length'] || '';
+  document.getElementById('f-length').value = m.Length || '';
+  renderPreviews();
+  document.getElementById('add-page-title').textContent = 'Edit Product';
+  document.getElementById('edit-mode-hint').classList.remove('hidden');
+  document.getElementById('cancel-edit-btn').style.display = 'inline-flex';
+  document.getElementById('save-product-btn').textContent = 'Save Changes';
+  showAdminPage('add', document.querySelector('.a-nav-item:nth-child(3)'));
+}
+
+function cancelEdit() {
+  resetAddForm();
+  showAdminPage('products', document.querySelector('.a-nav-item:nth-child(2)'));
+}
+
+async function archiveProduct(id) {
+  if (!confirm('Archive this product? It will be hidden from the storefront but not deleted.')) return;
+  try {
+    const { error } = await supabaseClient.from('products').update({ archived: true }).eq('id', id);
+    if (error) throw error;
+    await loadProducts(true);
+    renderAdminTable();
+    toast('Product archived', 'success');
+  } catch (e) {
+    console.error(e);
+    toast('Archive failed — add "archived" column in Supabase (see console)', 'error');
+  }
+}
+
+async function restoreProduct(id) {
+  try {
+    const { error } = await supabaseClient.from('products').update({ archived: false }).eq('id', id);
+    if (error) throw error;
+    await loadProducts(true);
+    renderAdminTable();
+    toast('Product restored', 'success');
+  } catch (e) {
+    console.error(e);
+    toast('Restore failed — add "archived" column in Supabase', 'error');
+  }
 }
 
 async function toggleStatus(id) {
@@ -1198,91 +1574,132 @@ async function toggleStatus(id) {
   try {
     const { error } = await supabaseClient.from('products').update({ status: newStatus }).eq('id', id);
     if (error) throw error;
-    await loadProducts();
+    await loadProducts(true);
     renderAdminTable();
     toast(`Status updated to ${newStatus}`, 'success');
-  } catch(e) {
+  } catch (e) {
     toast('Error updating product', 'error');
   }
 }
 
 async function deleteProduct(id) {
-  if (!confirm('Delete this product? This cannot be undone.')) return;
+  if (!confirm('Delete this product permanently? This cannot be undone.')) return;
   try {
     const { error } = await supabaseClient.from('products').delete().eq('id', id);
     if (error) throw error;
-    await loadProducts();
+    delete imageCache[id];
+    await loadProducts(true);
     renderAdminTable();
     toast('Product deleted', '');
-  } catch(e) {
+  } catch (e) {
     toast('Error deleting product', 'error');
   }
 }
 
-async function saveProduct() {
+function buildProductPayload() {
   const name = document.getElementById('f-name').value.trim();
   const price = document.getElementById('f-price').value.trim();
-  if (!name || !price) { toast('Please fill name and price', 'error'); return; }
+  const salePrice = document.getElementById('f-sale-price').value.trim();
+  const measurements = {};
+  if (document.getElementById('f-shoulder').value) measurements.Shoulder = document.getElementById('f-shoulder').value;
+  if (document.getElementById('f-bust').value) measurements.Bust = document.getElementById('f-bust').value;
+  if (document.getElementById('f-waist').value) measurements.Waist = document.getElementById('f-waist').value;
+  if (document.getElementById('f-sleeve').value) measurements['Sleeve Length'] = document.getElementById('f-sleeve').value;
+  if (document.getElementById('f-length').value) measurements.Length = document.getElementById('f-length').value;
+  return {
+    name,
+    price,
+    original_price: price,
+    sale_price: salePrice || null,
+    category: document.getElementById('f-cat').value,
+    status: document.getElementById('f-status').value,
+    notes: document.getElementById('f-notes').value,
+    images: uploadedImages,
+    measurements
+  };
+}
+
+async function saveProduct() {
+  const payload = buildProductPayload();
+  if (!payload.name || !payload.price) { toast('Please fill name and price', 'error'); return; }
   if (!uploadedImages.length) { toast('Please add at least one image', 'error'); return; }
-  const btn = document.querySelector('#page-add .btn-primary');
+  const btn = document.getElementById('save-product-btn');
+  const isEdit = !!editingProductId;
   btn.textContent = 'Saving...'; btn.disabled = true;
   try {
-    const measurements = {};
-    if (document.getElementById('f-shoulder').value) measurements.Shoulder = document.getElementById('f-shoulder').value;
-    if (document.getElementById('f-bust').value) measurements.Bust = document.getElementById('f-bust').value;
-    if (document.getElementById('f-waist').value) measurements.Waist = document.getElementById('f-waist').value;
-    if (document.getElementById('f-sleeve').value) measurements['Sleeve Length'] = document.getElementById('f-sleeve').value;
-    if (document.getElementById('f-length').value) measurements.Length = document.getElementById('f-length').value;
-    const { error } = await supabaseClient.from('products').insert([{
-      product_id: 'VELUNE-' + Math.random().toString().slice(2,6),
-      name, price,
-      category: document.getElementById('f-cat').value,
-      status: document.getElementById('f-status').value,
-      notes: document.getElementById('f-notes').value,
-      images: uploadedImages,
-      measurements,
-      created_at: new Date().toISOString()
-    }]);
-    if (error) throw error;
-    toast('Product added successfully!', 'success');
+    if (isEdit) {
+      let { error } = await supabaseClient.from('products').update(payload).eq('id', editingProductId);
+      if (error && /sale_price|original_price|archived/i.test(error.message || '')) {
+        const { sale_price, original_price, ...rest } = payload;
+        ({ error } = await supabaseClient.from('products').update(rest).eq('id', editingProductId));
+      }
+      if (error) throw error;
+      imageCache[editingProductId] = uploadedImages;
+      toast('Product updated!', 'success');
+    } else {
+      let insertPayload = {
+        ...payload,
+        product_id: 'VELUNE-' + Math.random().toString().slice(2, 6),
+        archived: false,
+        created_at: new Date().toISOString()
+      };
+      let { error } = await supabaseClient.from('products').insert([insertPayload]);
+      if (error && /sale_price|original_price|archived/i.test(error.message || '')) {
+        const { sale_price, original_price, archived, ...rest } = insertPayload;
+        ({ error } = await supabaseClient.from('products').insert([rest]));
+      }
+      if (error) throw error;
+      toast('Product added successfully!', 'success');
+    }
     resetAddForm();
-    await loadProducts();
+    await loadProducts(true);
     showAdminPage('products', document.querySelector('.a-nav-item:nth-child(2)'));
-  } catch(e) {
-    toast('Error saving product', 'error');
+  } catch (e) {
+    console.error(e);
+    toast(isEdit ? 'Error updating product' : 'Error saving product', 'error');
   } finally {
-    btn.textContent = 'Save Product'; btn.disabled = false;
+    btn.textContent = isEdit ? 'Save Changes' : 'Save Product';
+    btn.disabled = false;
   }
 }
 
-function resetAddForm() {
+function resetAddForm(clearEdit = true) {
+  if (clearEdit) {
+    editingProductId = null;
+    document.getElementById('add-page-title').textContent = 'Add New Product';
+    document.getElementById('edit-mode-hint').classList.add('hidden');
+    document.getElementById('cancel-edit-btn').style.display = 'none';
+    document.getElementById('save-product-btn').textContent = 'Save Product';
+  }
   uploadedImages = [];
-  ['f-name','f-price','f-notes','f-shoulder','f-bust','f-waist','f-sleeve','f-length'].forEach(id => {
+  ['f-name', 'f-price', 'f-sale-price', 'f-notes', 'f-shoulder', 'f-bust', 'f-waist', 'f-sleeve', 'f-length'].forEach(id => {
     document.getElementById(id).value = '';
   });
+  document.getElementById('f-cat').value = 'dress';
+  document.getElementById('f-status').value = 'available';
   document.getElementById('preview-strip').innerHTML = '';
   document.getElementById('image-input').value = '';
 }
 
 function handleDrop(e) {
-  e.preventDefault();e.stopPropagation();
+  e.preventDefault(); e.stopPropagation();
   document.getElementById('upload-area').classList.remove('drag-over');
   handleFiles(e.dataTransfer.files);
 }
 
 async function handleFiles(files) {
   if (!files.length) return;
-  for (let file of files) {
+  for (const file of files) {
     if (!file.type.startsWith('image/')) continue;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target.result;
+    try {
+      const dataUrl = await compressImage(file);
       uploadedImages.push(dataUrl);
       renderPreviews();
-      toast(`Image added (${uploadedImages.length})`);
-    };
-    reader.readAsDataURL(file);
+    } catch (_) {
+      toast('Could not process image', 'error');
+    }
   }
+  if (uploadedImages.length) toast(`Images ready (${uploadedImages.length})`, 'success');
 }
 
 function removeImage(idx) {
@@ -1313,9 +1730,7 @@ function navHome() {
 
 function scrollToId(id) {
   const el = document.getElementById(id);
-  if (el) {
-    setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-  }
+  if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
 }
 
 function openMobileMenu() {
@@ -1337,11 +1752,12 @@ function openWhatsApp() {
 function setLang(l) {
   lang = l;
   document.getElementById('html-root').dir = l === 'ar' ? 'rtl' : 'ltr';
-  ['btn-en','btn-ar','mob-btn-en','mob-btn-ar'].forEach(id => {
+  ['btn-en', 'btn-ar', 'mob-btn-en', 'mob-btn-ar'].forEach(id => {
     const btn = document.getElementById(id);
     if (btn) btn.classList.toggle('active', (id.includes('en') && l === 'en') || (id.includes('ar') && l === 'ar'));
   });
   updateText();
+  renderProducts();
 }
 
 function updateText() {
@@ -1356,12 +1772,14 @@ function updateText() {
 function applyFilter(f, btn) {
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  visibleProductCount = PAGE_SIZE;
   const grid = document.getElementById('products-grid');
   if (f === 'available') {
-    const avail = products.filter(p => p.status === 'available');
+    const avail = products.filter(p => p.status === 'available' && isStorefrontVisible(p));
     grid.innerHTML = avail.length
-      ? avail.map(productCard).join('')
+      ? avail.slice(0, visibleProductCount).map(productCard).join('')
       : '<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">🌸</span><p class="empty-msg">No available products</p></div>';
+    observeLazyImages();
   } else {
     renderProducts();
   }
@@ -1375,9 +1793,7 @@ function toast(msg, type = '') {
   t._timer = setTimeout(() => { t.className = 'toast'; }, 3200);
 }
 
-// Initial load
 showSkeletonLoading();
-renderProducts();
 </script>
 </body>
 </html>
