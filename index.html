@@ -195,6 +195,9 @@ h1 span{color:var(--violet);font-style:italic;font-weight:600}
   min-height:42px;white-space:nowrap
 }
 .filter-btn:hover,.filter-btn.active{background:var(--violet);border-color:var(--violet);color:#fff}
+.category-nav{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:0 auto clamp(24px,4vw,36px);max-width:980px}
+.category-chip{padding:10px 16px;border:1.5px solid rgba(176,130,210,0.3);background:transparent;color:var(--text-mid);border-radius:999px;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;min-height:42px;white-space:nowrap}
+.category-chip:hover,.category-chip.active{background:var(--violet);border-color:var(--violet);color:#fff}
 .products-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(clamp(150px,40vw,200px),1fr));
@@ -659,6 +662,7 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
       <div class="section-divider"></div>
     </div>
 
+    <div class="category-nav" id="category-nav"></div>
     <div id="products-grid" class="products-grid"></div>
     <div class="load-more-wrap hidden" id="load-more-wrap">
       <button class="load-more-btn" id="load-more-btn" onclick="loadMoreProducts()" data-en="Load More" data-ar="تحميل المزيد">Load More</button>
@@ -827,7 +831,7 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
         <div class="a-card" style="overflow-x:auto">
           <table class="a-table">
             <thead><tr>
-              <th>Image</th><th>ID</th><th>Name</th><th>Price</th><th>Status</th><th>Actions</th>
+              <th>Image</th><th>ID</th><th>Name</th><th>Category</th><th>Order</th><th>Price</th><th>Status</th><th>Actions</th>
             </tr></thead>
             <tbody id="admin-tbody"></tbody>
           </table>
@@ -870,10 +874,16 @@ footer{background:var(--deep-violet);padding:clamp(40px,7vw,64px) clamp(20px,6vw
           <div class="form-group">
             <label class="form-label" for="f-cat">Category</label>
             <select class="form-input form-select" id="f-cat">
-              <option value="top">Top / Jacket</option>
-              <option value="bottom">Skirt / Pants</option>
-              <option value="dress">Dress</option>
+              <option value="dresses">Dresses</option>
+              <option value="blouses">Blouses</option>
+              <option value="t-shirts">T-Shirts</option>
+              <option value="pants">Pants</option>
             </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="f-display-order">Display Order</label>
+            <input class="form-input" id="f-display-order" type="number" min="1" step="1" placeholder="e.g. 1, 2, 3"/>
+            <p style="font-size:11px;color:var(--text-soft);margin-top:6px">Lower numbers appear first inside each category.</p>
           </div>
           <div class="form-group">
             <label class="form-label" for="f-status">Status</label>
@@ -929,9 +939,17 @@ let currentModalProductId = null;
 let editingProductId = null;
 let showArchivedInAdmin = false;
 let visibleProductCount = 12;
+let selectedCategory = 'all';
 const PAGE_SIZE = 12;
-const META_CACHE_KEY = 'velune_products_meta_v1';
-const META_FIELDS = 'id,product_id,name,price,original_price,sale_price,category,status,archived,notes,measurements,created_at';
+const META_CACHE_KEY = 'velune_products_meta_v2';
+const META_FIELDS = 'id,product_id,name,price,original_price,sale_price,category,status,archived,notes,measurements,created_at,display_order';
+const FALLBACK_META_FIELDS = 'id,product_id,name,price,original_price,sale_price,category,status,archived,notes,measurements,created_at';
+const CATEGORY_DEFINITIONS = [
+  { value: 'dresses', labelEn: 'Dresses', labelAr: 'فساتين' },
+  { value: 'blouses', labelEn: 'Blouses', labelAr: 'بلوزات' },
+  { value: 't-shirts', labelEn: 'T-Shirts', labelAr: 'تيشيرتات' },
+  { value: 'pants', labelEn: 'Pants', labelAr: 'أرجل' }
+];
 const imageCache = {};
 const imageLoadPromises = {};
 let lazyImageObserver = null;
@@ -1014,8 +1032,85 @@ function isArchived(p) {
   return p.archived === true || p.archived === 'true';
 }
 
+function normalizeCategory(value) {
+  if (!value && value !== 0) return 'dresses';
+  const normalized = String(value).trim().toLowerCase();
+  const legacyMap = {
+    dress: 'dresses',
+    dresses: 'dresses',
+    blouse: 'blouses',
+    blouses: 'blouses',
+    top: 'blouses',
+    tops: 'blouses',
+    jacket: 'blouses',
+    tshirt: 't-shirts',
+    't-shirt': 't-shirts',
+    't_shirt': 't-shirts',
+    't-shirts': 't-shirts',
+    tee: 't-shirts',
+    tees: 't-shirts',
+    pants: 'pants',
+    pant: 'pants',
+    trousers: 'pants',
+    bottom: 'pants',
+    bottoms: 'pants',
+    skirt: 'pants',
+    skirts: 'pants'
+  };
+  return legacyMap[normalized] || CATEGORY_DEFINITIONS.find(cat => cat.value === normalized)?.value || 'dresses';
+}
+
+function getCategoryLabel(category, locale = lang) {
+  const normalized = normalizeCategory(category);
+  const match = CATEGORY_DEFINITIONS.find(cat => cat.value === normalized);
+  if (!match) return locale === 'ar' ? 'الكل' : 'All';
+  return locale === 'ar' ? match.labelAr : match.labelEn;
+}
+
+function sortProductsByDisplayOrder(list) {
+  return [...list].sort((a, b) => {
+    const first = Number(a.display_order ?? 9999);
+    const second = Number(b.display_order ?? 9999);
+    return first - second || String(a.name || '').localeCompare(String(b.name || ''));
+  });
+}
+
 function isStorefrontVisible(p) {
   return !isArchived(p);
+}
+
+function getActiveStorefrontProducts() {
+  return products.filter(p => p.status === 'available' && isStorefrontVisible(p));
+}
+
+function getVisibleCategories() {
+  const activeProducts = getActiveStorefrontProducts();
+  return CATEGORY_DEFINITIONS.filter(def => activeProducts.some(p => normalizeCategory(p.category) === def.value));
+}
+
+function setSelectedCategory(category) {
+  selectedCategory = category;
+  if (selectedCategory !== 'all' && !getVisibleCategories().some(cat => cat.value === selectedCategory)) {
+    selectedCategory = 'all';
+  }
+  visibleProductCount = PAGE_SIZE;
+  renderProducts();
+}
+
+function renderCategoryNav() {
+  const nav = document.getElementById('category-nav');
+  const visibleCategories = getVisibleCategories();
+  if (!visibleCategories.length) {
+    nav.innerHTML = '';
+    nav.style.display = 'none';
+    return;
+  }
+
+  nav.innerHTML = [
+    `<button class="category-chip ${selectedCategory === 'all' ? 'active' : ''}" onclick="setSelectedCategory('all')">${lang === 'ar' ? 'الكل' : 'All'}</button>`,
+    ...visibleCategories.map(cat => `<button class="category-chip ${selectedCategory === cat.value ? 'active' : ''}" onclick="setSelectedCategory('${cat.value}')">${getCategoryLabel(cat.value)}</button>`)
+  ].join('');
+  nav.style.display = 'flex';
 }
 
 function cacheMetadata() {
@@ -1128,16 +1223,19 @@ async function loadProducts(silent) {
     ({ data, error } = await supabaseClient
       .from('products')
       .select(META_FIELDS)
+      .order('display_order', { ascending: true })
       .order('created_at', { ascending: false }));
     if (error) {
       ({ data, error } = await supabaseClient
         .from('products')
-        .select('id,product_id,name,price,category,status,notes,measurements,created_at')
+        .select(FALLBACK_META_FIELDS)
         .order('created_at', { ascending: false }));
     }
     if (error) throw error;
     products = (data || []).map(p => ({
       ...p,
+      category: normalizeCategory(p.category),
+      display_order: Number.isFinite(Number(p.display_order)) ? Number(p.display_order) : 9999,
       images: imageCache[p.id] || p.images || null
     }));
     cacheMetadata();
@@ -1166,12 +1264,14 @@ function showSkeletonLoading() {
 }
 
 function getFilteredProducts() {
-  const avail = products.filter(p => p.status === 'available' && isStorefrontVisible(p));
-  const sold = products.filter(p => p.status === 'sold' && isStorefrontVisible(p));
+  const filteredByCategory = p => isStorefrontVisible(p) && (selectedCategory === 'all' || normalizeCategory(p.category) === selectedCategory);
+  const avail = sortProductsByDisplayOrder(products.filter(p => p.status === 'available' && filteredByCategory(p)));
+  const sold = sortProductsByDisplayOrder(products.filter(p => p.status === 'sold' && filteredByCategory(p)));
   return { avail, sold };
 }
 
 function renderProducts() {
+  renderCategoryNav();
   const { avail, sold } = getFilteredProducts();
   const grid = document.getElementById('products-grid');
   const soldGrid = document.getElementById('sold-grid');
@@ -1179,7 +1279,7 @@ function renderProducts() {
 
   grid.innerHTML = visibleAvail.length
     ? visibleAvail.map(productCard).join('')
-    : '<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">🌸</span><p class="empty-msg">No products available yet</p></div>';
+    : `<div class="empty-state" style="grid-column:1/-1"><span class="empty-icon">🌸</span><p class="empty-msg">${lang === 'ar' ? 'لا توجد منتجات في هذه الفئة بعد' : 'No products available in this category yet'}</p></div>`;
 
   const loadMoreWrap = document.getElementById('load-more-wrap');
   if (avail.length > visibleProductCount) {
@@ -1473,7 +1573,7 @@ function adminPriceCell(p) {
 }
 
 function renderAdminTable() {
-  const list = getAdminProducts();
+  const list = sortProductsByDisplayOrder(getAdminProducts());
   const tbody = document.getElementById('admin-tbody');
   const header = document.querySelector('#page-products .a-page-header');
   header.innerHTML = `
@@ -1490,6 +1590,8 @@ function renderAdminTable() {
       <td>${thumb}</td>
       <td style="font-size:11px;color:var(--text-soft);white-space:nowrap">${escapeHtml(p.product_id||p.id)}</td>
       <td style="font-weight:500">${escapeHtml(p.name)}</td>
+      <td>${escapeHtml(getCategoryLabel(p.category))}</td>
+      <td style="white-space:nowrap">${escapeHtml(String(p.display_order ?? '—'))}</td>
       <td>${adminPriceCell(p)}</td>
       <td>${adminStatusBadge(p)}</td>
       <td><div class="action-row">
@@ -1501,7 +1603,7 @@ function renderAdminTable() {
         <button class="act-btn btn-del" onclick="deleteProduct('${p.id}')">Delete</button>
       </div></td>
     </tr>`;
-  }).join('') : '<tr><td colspan="6" style="padding:24px;color:var(--text-soft);text-align:center">No products found.</td></tr>';
+  }).join('') : '<tr><td colspan="8" style="padding:24px;color:var(--text-soft);text-align:center">No products found.</td></tr>';
 
   list.filter(p => !p.images?.length).slice(0, 20).forEach(p => loadProductImages(p.id));
 }
@@ -1519,7 +1621,8 @@ async function openEditProduct(id) {
   document.getElementById('f-name').value = p.name || '';
   document.getElementById('f-price').value = p.original_price || p.price || '';
   document.getElementById('f-sale-price').value = p.sale_price || '';
-  document.getElementById('f-cat').value = p.category || 'dress';
+  document.getElementById('f-cat').value = normalizeCategory(p.category);
+  document.getElementById('f-display-order').value = p.display_order ?? '';
   document.getElementById('f-status').value = p.status || 'available';
   document.getElementById('f-notes').value = p.notes || '';
   const m = p.measurements || {};
@@ -1600,6 +1703,8 @@ function buildProductPayload() {
   const name = document.getElementById('f-name').value.trim();
   const price = document.getElementById('f-price').value.trim();
   const salePrice = document.getElementById('f-sale-price').value.trim();
+  const displayOrderValue = document.getElementById('f-display-order').value.trim();
+  const displayOrder = displayOrderValue ? Number(displayOrderValue) : 9999;
   const measurements = {};
   if (document.getElementById('f-shoulder').value) measurements.Shoulder = document.getElementById('f-shoulder').value;
   if (document.getElementById('f-bust').value) measurements.Bust = document.getElementById('f-bust').value;
@@ -1611,7 +1716,8 @@ function buildProductPayload() {
     price,
     original_price: price,
     sale_price: salePrice || null,
-    category: document.getElementById('f-cat').value,
+    category: normalizeCategory(document.getElementById('f-cat').value),
+    display_order: Number.isFinite(displayOrder) ? displayOrder : 9999,
     status: document.getElementById('f-status').value,
     notes: document.getElementById('f-notes').value,
     images: uploadedImages,
@@ -1629,8 +1735,8 @@ async function saveProduct() {
   try {
     if (isEdit) {
       let { error } = await supabaseClient.from('products').update(payload).eq('id', editingProductId);
-      if (error && /sale_price|original_price|archived/i.test(error.message || '')) {
-        const { sale_price, original_price, ...rest } = payload;
+      if (error && /display_order|sale_price|original_price|archived/i.test(error.message || '')) {
+        const { display_order, sale_price, original_price, archived, ...rest } = payload;
         ({ error } = await supabaseClient.from('products').update(rest).eq('id', editingProductId));
       }
       if (error) throw error;
@@ -1644,8 +1750,8 @@ async function saveProduct() {
         created_at: new Date().toISOString()
       };
       let { error } = await supabaseClient.from('products').insert([insertPayload]);
-      if (error && /sale_price|original_price|archived/i.test(error.message || '')) {
-        const { sale_price, original_price, archived, ...rest } = insertPayload;
+      if (error && /display_order|sale_price|original_price|archived/i.test(error.message || '')) {
+        const { display_order, sale_price, original_price, archived, ...rest } = insertPayload;
         ({ error } = await supabaseClient.from('products').insert([rest]));
       }
       if (error) throw error;
@@ -1672,10 +1778,10 @@ function resetAddForm(clearEdit = true) {
     document.getElementById('save-product-btn').textContent = 'Save Product';
   }
   uploadedImages = [];
-  ['f-name', 'f-price', 'f-sale-price', 'f-notes', 'f-shoulder', 'f-bust', 'f-waist', 'f-sleeve', 'f-length'].forEach(id => {
+  ['f-name', 'f-price', 'f-sale-price', 'f-display-order', 'f-notes', 'f-shoulder', 'f-bust', 'f-waist', 'f-sleeve', 'f-length'].forEach(id => {
     document.getElementById(id).value = '';
   });
-  document.getElementById('f-cat').value = 'dress';
+  document.getElementById('f-cat').value = 'dresses';
   document.getElementById('f-status').value = 'available';
   document.getElementById('preview-strip').innerHTML = '';
   document.getElementById('image-input').value = '';
